@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101317" />
+  <meta name="description" content="Chitzy – fast, secure, AI-powered chat across web, mobile, and desktop." />
+  <title>Chitzy — Fast, Secure, AI-powered Chat</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="is-loading">
+  <noscript>
+    <div class="noscript">Chitzy requires JavaScript to run. Please enable JavaScript in your browser.</div>
+  </noscript>
+
+  <div id="loader" class="loader-overlay" aria-live="polite" aria-busy="true">
+    <div class="loader-card">
+      <img src="assets/brand/logo.svg" alt="Chitzy" class="logo" onerror="this.style.display='none'" />
+      <div class="brandname">Chitzy</div>
+      <div class="progress"><span class="bar"></span></div>
+      <div class="tip">Loading experience…</div>
+    </div>
+  </div>
+
+  <div id="recaptcha-container" style="position:absolute;left:-9999px;top:-9999px;"></div>
+
+  <div id="app" class="app">
+    <!-- Auth View -->
+    <section id="authView" class="view view-auth" aria-hidden="false">
+      <div class="auth-card">
+        <div class="brand">
+          <img src="assets/brand/logo.svg" alt="Chitzy" class="logo" onerror="this.style.display='none'" />
+          <h1>Chitzy</h1>
+          <p class="subtitle">Fast • Secure • AI‑powered</p>
+        </div>
+
+        <div class="auth-tabs" role="tablist">
+          <button class="tab active" data-tab="login" aria-selected="true">Login</button>
+          <button class="tab" data-tab="signup" aria-selected="false">Sign Up</button>
+        </div>
+
+        <div class="tab-panels">
+          <form id="loginForm" class="panel active" data-panel="login" autocomplete="on">
+            <label>
+              <span>Email or Phone</span>
+              <input id="loginId" name="loginId" type="text" inputmode="email" autocomplete="username" required />
+            </label>
+            <label>
+              <span>Password</span>
+              <input id="loginPassword" name="password" type="password" autocomplete="current-password" required />
+            </label>
+            <div class="row">
+              <label class="checkbox">
+                <input type="checkbox" id="loginRemember" checked />
+                <span>Remember me</span>
+              </label>
+              <button type="button" class="link" id="btnForgot">Forgot?</button>
+            </div>
+            <button type="submit" class="btn primary full">Login</button>
+            <div class="or">or</div>
+            <div class="social-auth">
+              <button type="button" class="btn ghost" id="btnOtp">Login with OTP</button>
+            </div>
+            <div class="biometric">
+              <button type="button" class="btn" id="btnBiometric">Use biometric</button>
+            </div>
+          </form>
+
+          <form id="signupForm" class="panel" data-panel="signup" autocomplete="on">
+            <label>
+              <span>Display Name</span>
+              <input id="signupName" name="name" type="text" autocomplete="name" required />
+            </label>
+            <label>
+              <span>Email</span>
+              <input id="signupEmail" name="email" type="email" autocomplete="email" required />
+            </label>
+            <label>
+              <span>Phone</span>
+              <input id="signupPhone" name="phone" type="tel" autocomplete="tel" />
+            </label>
+            <label>
+              <span>Password</span>
+              <input id="signupPassword" name="password" type="password" autocomplete="new-password" required />
+            </label>
+            <button type="submit" class="btn primary full">Create Account</button>
+          </form>
+        </div>
+
+        <footer class="auth-footer">
+          <label class="checkbox small">
+            <input type="checkbox" id="toggleConsent" checked />
+            <span>I agree to <button type="button" class="link" id="btnTerms">Terms & Privacy</button></span>
+          </label>
+        </footer>
+      </div>
+    </section>
+
+    <!-- Main Chat View -->
+    <section id="chatView" class="view view-chat" aria-hidden="true">
+      <aside class="sidebar">
+        <header class="sidebar-header">
+          <div class="brand-mini">💬 Chitzy</div>
+          <button class="btn icon" id="btnNewChat" title="New chat">＋</button>
+        </header>
+
+        <div class="status-stories" id="statusBar" aria-label="Statuses and Stories" role="list"></div>
+
+        <div class="search">
+          <input id="searchInput" type="search" placeholder="Search chats, messages, media" />
+        </div>
+
+        <div class="filters">
+          <button class="chip active" data-filter="all">All</button>
+          <button class="chip" data-filter="unread">Unread</button>
+          <button class="chip" data-filter="groups">Groups</button>
+          <button class="chip" data-filter="channels">Channels</button>
+          <button class="chip" data-filter="starred">Starred</button>
+        </div>
+
+        <nav id="chatList" class="chat-list" aria-label="Chats" role="list"></nav>
+
+        <footer class="sidebar-footer">
+          <button class="btn ghost" id="btnSettings">Settings</button>
+          <button class="btn ghost" id="btnProfile">Profile</button>
+          <button class="btn ghost" id="btnAbout">About</button>
+          <button class="btn ghost danger" id="btnLogout">Logout</button>
+        </footer>
+      </aside>
+
+      <main class="conversation">
+        <header class="conv-header">
+          <div class="conv-meta">
+            <div class="title" id="convTitle">Select a chat</div>
+            <div class="presence" id="convPresence"></div>
+          </div>
+          <div class="conv-actions">
+            <button class="btn icon" id="btnVoiceCall" title="Voice call">📞</button>
+            <button class="btn icon" id="btnVideoCall" title="Video call">🎥</button>
+            <button class="btn icon" id="btnInfo" title="Chat info">ℹ️</button>
+          </div>
+        </header>
+
+        <section id="messageList" class="messages" aria-live="polite"></section>
+        <div class="typing" id="typingIndicator" hidden>Typing…</div>
+
+        <footer class="composer">
+          <div class="row top">
+            <button class="btn icon" id="btnEmoji" title="Emoji">😊</button>
+            <button class="btn icon" id="btnSticker" title="Stickers">🎟️</button>
+            <button class="btn icon" id="btnGif" title="GIFs">GIF</button>
+            <button class="btn icon" id="btnAttach" title="Attach">📎</button>
+            <input type="file" id="filePicker" hidden multiple />
+            <button class="btn icon" id="btnRecord" title="Voice note">🎙️</button>
+            <button class="btn icon" id="btnSchedule" title="Schedule message">⏰</button>
+            <button class="btn icon" id="btnTranslate" title="Translate">🌐</button>
+            <button class="btn icon" id="btnTTS" title="Speak message">🔊</button>
+          </div>
+          <div class="row mid">
+            <div id="attachments" class="attachments" hidden></div>
+            <div id="scheduleBanner" class="banner" hidden></div>
+          </div>
+          <div class="row bottom">
+            <input id="messageInput" type="text" placeholder="Write a message…" />
+            <button id="sendBtn" class="btn primary">Send</button>
+          </div>
+        </footer>
+      </main>
+
+      <aside id="infoPanel" class="info-panel" aria-hidden="true">
+        <div class="info-header">
+          <div class="title">Chat info</div>
+          <button class="btn icon" id="btnCloseInfo">✖</button>
+        </div>
+        <div class="info-body" id="infoBody">
+          <!-- Group / Chat details will render here -->
+        </div>
+      </aside>
+    </section>
+  </div>
+
+  <!-- Modals -->
+  <dialog id="settingsModal" class="modal">
+    <form method="dialog">
+      <header class="modal-header">
+        <h3>Settings</h3>
+        <button class="btn icon" value="cancel">✖</button>
+      </header>
+      <section class="modal-body">
+        <div class="setting">
+          <label class="row between">
+            <span>Theme</span>
+            <select id="themeSelect">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
+        </div>
+        <div class="setting">
+          <label class="row between">
+            <span>Language</span>
+            <select id="langSelect">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </label>
+        </div>
+        <div class="setting">
+          <label class="row between">
+            <span>Notifications</span>
+            <input type="checkbox" id="toggleNotifs" checked />
+          </label>
+        </div>
+        <div class="setting">
+          <label class="row between">
+            <span>Enable E2E Encryption (local demo)</span>
+            <input type="checkbox" id="toggleE2E" checked />
+          </label>
+        </div>
+        <div class="setting">
+          <button type="button" class="btn full" id="btnPermissions">Request permissions</button>
+        </div>
+        <div class="setting">
+          <div class="row between">
+            <span>Biometric (Face/Touch)</span>
+            <span id="biometricStatus" class="muted">Checking…</span>
+          </div>
+          <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:12px">
+            <button type="button" class="btn" id="btnEnrollBiometric">Add biometric</button>
+            <label class="checkbox">
+              <input type="checkbox" id="toggleBiometricLogin" />
+              <span>Allow login with biometric</span>
+            </label>
+          </div>
+        </div>
+      </section>
+      <footer class="modal-footer">
+        <button class="btn" value="cancel">Close</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="profileModal" class="modal">
+    <form method="dialog">
+      <header class="modal-header">
+        <h3>Profile</h3>
+        <button class="btn icon" value="cancel">✖</button>
+      </header>
+      <section class="modal-body">
+        <label>
+          <span>Username</span>
+          <input id="profileName" type="text" />
+        </label>
+        <label>
+          <span>Bio</span>
+          <textarea id="profileBio" rows="3"></textarea>
+        </label>
+        <label>
+          <span>Profile Photo</span>
+          <input id="profilePhoto" type="file" accept="image/*" />
+        </label>
+        <label>
+          <span>Cover Photo</span>
+          <input id="profileCover" type="file" accept="image/*" />
+        </label>
+      </section>
+      <footer class="modal-footer">
+        <button class="btn" id="saveProfile" value="default">Save</button>
+        <button class="btn" value="cancel">Cancel</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="newChatModal" class="modal">
+    <form method="dialog">
+      <header class="modal-header">
+        <h3>New chat</h3>
+        <button class="btn icon" value="cancel">✖</button>
+      </header>
+      <section class="modal-body">
+        <input id="contactSearch" type="search" placeholder="Search contacts" />
+        <div id="contactList" class="list"></div>
+        <hr />
+        <button type="button" class="btn" id="btnCreateGroup">Create group</button>
+        <button type="button" class="btn" id="btnCreateChannel">Create channel</button>
+      </section>
+      <footer class="modal-footer">
+        <button class="btn" value="cancel">Close</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="pollModal" class="modal">
+    <form method="dialog">
+      <header class="modal-header">
+        <h3>Create poll</h3>
+        <button class="btn icon" value="cancel">✖</button>
+      </header>
+      <section class="modal-body">
+        <label>
+          <span>Question</span>
+          <input id="pollQuestion" type="text" />
+        </label>
+        <label>
+          <span>Options (comma-separated)</span>
+          <input id="pollOptions" type="text" />
+        </label>
+      </section>
+      <footer class="modal-footer">
+        <button class="btn" id="createPoll" value="default">Create</button>
+        <button class="btn" value="cancel">Cancel</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="aboutModal" class="modal">
+    <form method="dialog">
+      <header class="modal-header">
+        <h3>About Chitzy</h3>
+        <button class="btn icon" value="cancel">✖</button>
+      </header>
+      <section class="modal-body">
+        <p>Chitzy — fast, secure, AI‑powered chat.</p>
+        <div id="aboutInfo" class="list"></div>
+      </section>
+      <footer class="modal-footer">
+        <button class="btn" value="cancel">Close</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="termsModal" class="modal">
+    <form method="dialog">
+      <header class="modal-header">
+        <h3>Terms & Privacy</h3>
+        <button class="btn icon" value="cancel">✖</button>
+      </header>
+      <section class="modal-body">
+        <p>Welcome to Chitzy. By using this app, you agree to our Terms and acknowledge our Privacy Policy. This demo stores data locally and may connect to Supabase for authentication and storage if configured.</p>
+        <ul class="list">
+          <li>Respect others. No harassment or illegal content.</li>
+          <li>Do not share sensitive information without consent.</li>
+          <li>Media uploads may be processed and stored in cloud storage.</li>
+          <li>End-to-end encryption in this demo is not production-grade.</li>
+        </ul>
+      </section>
+      <footer class="modal-footer">
+        <button class="btn" value="cancel">Close</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <template id="tpl-chat-item">
+    <div class="chat-item" role="listitem">
+      <div class="avatar"></div>
+      <div class="meta">
+        <div class="row between">
+          <div class="name"></div>
+          <div class="time"></div>
+        </div>
+        <div class="row between">
+          <div class="preview"></div>
+          <div class="badges"></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-message">
+    <div class="msg">
+      <div class="bubble">
+        <div class="content"></div>
+        <div class="meta">
+          <span class="status"></span>
+          <span class="read"></span>
+        </div>
+      </div>
+      <div class="reactions" hidden></div>
+    </div>
+  </template>
+
+  <script>
+    window.CHITZY_SUPABASE_URL='https://shidfuymutxmjeohfxwt.supabase.co';
+    window.CHITZY_SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoaWRmdXltdXR4bWplb2hmeHd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyMjE3MjksImV4cCI6MjA2OTc5NzcyOX0.Evym4SRo6tLylg8EJ1HlXBZfoKxWeMsbf5HidJd8TS0';
+  </script>
+  <script type="module" src="assets/js/app.js"></script>
+  <script>
+    // Graceful SW registration; will work once sw exists
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./assets/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
